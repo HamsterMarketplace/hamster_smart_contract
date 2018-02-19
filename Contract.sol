@@ -232,6 +232,28 @@ contract Pausable is Ownable {
 }
 
 /**
+ * @title Burnable Token
+ * @dev Token that can be irreversibly burned (destroyed).
+ */
+contract BurnableToken is StandardToken {
+ 
+  /**
+   * @dev Burns a specific amount of tokens.
+   * @param _value The amount of token to be burned.
+   */
+  function burn(uint _value) public {
+    require(_value > 0);
+    address burner = msg.sender;
+    balances[burner] = balances[burner].sub(_value);
+    totalSupply = totalSupply.sub(_value);
+    Burn(burner, _value);
+  }
+ 
+  event Burn(address indexed burner, uint indexed value);
+ 
+}
+
+/**
  * @title Hamster Marketplace Token Network Token
  * @dev ERC20 Hamster Marketplace Token Network Token (HMT)
  *
@@ -250,7 +272,7 @@ contract Pausable is Ownable {
  * this contract.
  *
  */
-contract HamsterMarketplaceToken is StandardToken, Pausable {
+contract HamsterMarketplaceToken is BurnableToken, Pausable {
 
   string public constant name = 'Hamster Marketplace Token';                   // Set the token name for display
   string public constant symbol = 'HMT';                                       // Set the token symbol for display
