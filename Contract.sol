@@ -265,8 +265,8 @@ contract BurnableToken is StandardToken {
  * 1 HMT is equivalent to:
  *   100000000 == 1 * 10**8 == 1e8 == One Hundred Million Grains
  *
- * 1 Million HMT (total supply) is equivalent to:
- *   100000000000000 == 1000000 * 10**8 == 1e14 == One Hundred Trillion Grains
+ * 10 Million HMT (total supply) is equivalent to:
+ *   1000000000000000 == 10000000 * 10**8 == 1e15 == One Quadrillion Grains
  *
  * All initial HMT Grains are assigned to the creator of
  * this contract.
