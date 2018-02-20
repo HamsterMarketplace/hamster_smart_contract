@@ -265,8 +265,8 @@ contract BurnableToken is StandardToken {
  * 1 HMT is equivalent to:
  *   100000000 == 1 * 10**8 == 1e8 == One Hundred Million Grains
  *
- * 1 Billion HMT (total supply) is equivalent to:
- *   100000000000000000 == 1000000000 * 10**8 == 1e17 == One Hundred Quadrillion Grains
+ * 1 Million HMT (total supply) is equivalent to:
+ *   100000000000000 == 1000000 * 10**8 == 1e14 == One Hundred Trillion Grains
  *
  * All initial HMT Grains are assigned to the creator of
  * this contract.
@@ -277,7 +277,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   string public constant name = 'Hamster Marketplace Token';                   // Set the token name for display
   string public constant symbol = 'HMT';                                       // Set the token symbol for display
   uint8 public constant decimals = 8;                                          // Set the number of decimals for display
-  uint256 public constant INITIAL_SUPPLY = 20000000 * 10**uint256(decimals);   // 1 Billion HMT specified in Grains\
+  uint256 public constant INITIAL_SUPPLY = 10000000 * 10**uint256(decimals);   // 10 Million HMT specified in Grains\
   uint256 public sellPrice;
   uint256 public revenue;
 
