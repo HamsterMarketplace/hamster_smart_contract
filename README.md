@@ -1,2 +1,2 @@
-# hamster_smart_contract
-Hamster Smart Contract
+# Hamster Smart Contract
+
