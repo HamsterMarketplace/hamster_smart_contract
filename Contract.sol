@@ -279,7 +279,6 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   uint8 public constant decimals = 8;                                          // Set the number of decimals for display
   uint256 public constant INITIAL_SUPPLY = 10000000 * 10**uint256(decimals);   // 10 Million HMT specified in Grains\
   uint256 public sellPrice;
-  uint256 public revenue;
 
   /**
    * @dev HamsterMarketplaceToken Constructor
@@ -288,6 +287,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   function HamsterMarketplaceToken() {
     totalSupply = INITIAL_SUPPLY;                                              // Set the total supply
     balances[msg.sender] = INITIAL_SUPPLY;                                     // Creator address is assigned all
+    sellPrice = 0;
   }
 
   /**
@@ -320,6 +320,13 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
     return super.approve(_spender, _value);
   }
 
+ /**
+  * @dev Gets the purchase price of tokens by contract
+  */
+  function getPrice() constant returns (uint256 _sellPrice) {
+      return sellPrice;
+  }
+
   /**
   * @dev Sets the purchase price of tokens by contract
   * @param newSellPrice New purchase price
@@ -334,7 +341,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
     * @dev Buying ethereum for tokens
     * @param amount Number of tokens
     */
-  function sell(uint amount) external returns (uint revenue){
+  function sell(uint256 amount) external returns (uint256 revenue){
       require(balances[msg.sender] >= amount);                                 // Checks if the sender has enough to sell
       balances[this] = balances[this].add(amount);                             // Adds the amount to owner's balance
       balances[msg.sender] = balances[msg.sender].sub(amount);                 // Subtracts the amount from seller's balance
@@ -348,7 +355,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   * @dev Allows you to get tokens from the contract
   * @param amount Number of tokens
   */
-  function getTokens(uint amount) onlyOwner external returns (bool success) {
+  function getTokens(uint256 amount) onlyOwner external returns (bool success) {
       require(balances[this] >= amount);
       balances[msg.sender] = balances[msg.sender].add(amount);
       balances[this] = balances[this].sub(amount);
@@ -367,7 +374,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   * @dev Allows you to get ethereum from the contract
   * @param amount Number of tokens
   */
-  function getEther(uint amount) onlyOwner external returns (bool success) {
+  function getEther(uint256 amount) onlyOwner external returns (bool success) {
       require(amount > 0);
       msg.sender.transfer(amount);
       return true;
