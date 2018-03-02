@@ -1,2 +1,3 @@
-# Hamster Smart Contract
+# Hamster Marketplace Smart Contract
 
+https://hmstr.io/
