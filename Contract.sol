@@ -277,8 +277,11 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
   string public constant name = 'Hamster Marketplace Token';                   // Set the token name for display
   string public constant symbol = 'HMT';                                       // Set the token symbol for display
   uint8 public constant decimals = 8;                                          // Set the number of decimals for display
-  uint256 public constant INITIAL_SUPPLY = 10000000 * 10**uint256(decimals);   // 10 Million HMT specified in Grains\
+  uint256 constant INITIAL_SUPPLY = 10000000 * 10**uint256(decimals);          // 10 Million HMT specified in Grains
   uint256 public sellPrice;
+  mapping(address => uint256) bonuses;
+  uint8 public freezingPercentage;
+  uint32 public constant unfreezingTimestamp = 1550534400;                     // 2019, February, 19, 00:00:00 UTC
 
   /**
    * @dev HamsterMarketplaceToken Constructor
@@ -288,6 +291,11 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
     totalSupply = INITIAL_SUPPLY;                                              // Set the total supply
     balances[msg.sender] = INITIAL_SUPPLY;                                     // Creator address is assigned all
     sellPrice = 0;
+    freezingPercentage = 100;
+  }
+
+  function balanceOf(address _owner) constant returns (uint256 balance) {
+    return super.balanceOf(_owner) - bonuses[_owner] * freezingPercentage / 100;
   }
 
   /**
@@ -297,7 +305,49 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
    */
   function transfer(address _to, uint256 _value) whenNotPaused returns (bool) {
     require(_to != address(0));
+    require(balances[msg.sender] - bonuses[msg.sender] * freezingPercentage / 100 >= _value);
     return super.transfer(_to, _value);
+  }
+
+  /**
+   * @dev Transfer tokens and bonus tokens to a specified address
+   * @param _to The address to transfer to.
+   * @param _value The amount to be transferred.
+   * @param _bonus The bonus amount.
+   */
+  function transferWithBonuses(address _to, uint256 _value, uint256 _bonus) onlyOwner returns (bool) {
+    require(_to != address(0));
+    require(balances[msg.sender] - bonuses[msg.sender] * freezingPercentage / 100 >= _value + _bonus);
+    bonuses[_to] = bonuses[_to].add(_bonus);
+    return super.transfer(_to, _value + _bonus);
+  }
+
+  /**
+   * @dev Check the frozen bonus balance
+   * @param _owner The address to check the balance of.
+   */
+  function bonusesOf(address _owner) constant returns (uint256 balance) {
+    return bonuses[_owner] * freezingPercentage / 100;
+  }
+
+  /**
+   * @dev Unfreezing part of bonus tokens by owner
+   * @param _percentage uint8 Percentage of bonus tokens to be left frozen
+   */
+  function setFreezingPercentage(uint8 _percentage) onlyOwner returns (bool) {
+    require(_percentage < freezingPercentage);
+    require(now < unfreezingTimestamp);
+    freezingPercentage = _percentage;
+    return true;
+  }
+
+  /**
+   * @dev Unfreeze all bonus tokens
+   */
+  function unfreezeBonuses() returns (bool) {
+    require(now >= unfreezingTimestamp);
+    freezingPercentage = 0;
+    return true;
   }
 
   /**
@@ -308,6 +358,7 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
    */
   function transferFrom(address _from, address _to, uint256 _value) whenNotPaused returns (bool) {
     require(_to != address(0));
+    require(balances[_from] - bonuses[_from] * freezingPercentage / 100 >= _value);
     return super.transferFrom(_from, _to, _value);
   }
 
@@ -342,13 +393,13 @@ contract HamsterMarketplaceToken is BurnableToken, Pausable {
     * @param amount Number of tokens
     */
   function sell(uint256 amount) external returns (uint256 revenue){
-      require(balances[msg.sender] >= amount);                                 // Checks if the sender has enough to sell
-      balances[this] = balances[this].add(amount);                             // Adds the amount to owner's balance
-      balances[msg.sender] = balances[msg.sender].sub(amount);                 // Subtracts the amount from seller's balance
-      revenue = amount.mul(sellPrice);                                         // Calculate the seller reward
-      msg.sender.transfer(revenue);                                            // Sends ether to the seller: it's important to do this last to prevent recursion attacks
-      Transfer(msg.sender, this, amount);                                      // Executes an event reflecting on the change
-      return revenue;                                                          // Ends function and returns
+      require(balances[msg.sender] - bonuses[msg.sender] * freezingPercentage / 100 >= amount);           // Checks if the sender has enough to sell
+      balances[this] = balances[this].add(amount);                                                        // Adds the amount to owner's balance
+      balances[msg.sender] = balances[msg.sender].sub(amount);                                            // Subtracts the amount from seller's balance
+      revenue = amount.mul(sellPrice);                                                                    // Calculate the seller reward
+      msg.sender.transfer(revenue);                                                                       // Sends ether to the seller: it's important to do this last to prevent recursion attacks
+      Transfer(msg.sender, this, amount);                                                                 // Executes an event reflecting on the change
+      return revenue;                                                                                     // Ends function and returns
   }
 
   /**
